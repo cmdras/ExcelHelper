@@ -12,6 +12,7 @@ import traceback, subprocess, os, shutil
 import xml.etree.ElementTree as ET
 import codecs
 import sys
+import zipfile
 
 def GetDataFromXlsx(xlsxFile, tmpDataDir=None, headers=False):
     ''' Main method for extracting data from a Microsoft Excel file (.xlsx)
@@ -71,17 +72,18 @@ def __ConvertXlsxToXml(xlsxFile, tmpDataDir):
     curDir = os.path.dirname(os.path.realpath(__file__))
     tmpDir = __ValidateDirectories(curDir, tmpDataDir)
 
-    unzipString = "unzip '{}' -d '{}'".format(xlsxFile, tmpDir)
-    print unzipString
     print 'Trying to unzip the file: {}'.format(xlsxFile)
     try:
-        FNULL = open(os.devnull, 'w')
-        subprocess.call(unzipString, shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+        zipRef = zipfile.ZipFile(xlsxFile, 'r')
+        zipRef.extractall(tmpDir)
         success = True
         print 'Successfully unzipped {} !'.format(xlsxFile)
     except Exception as e:
         print 'An error occured while converting {} to a xml file: {}'.format(xlsxFile, e)
         print traceback.format_exc()
+    finally:
+        zipRef.close()
+
     return (success, tmpDir)
 
 def __ValidateDirectories(curDir, tmpDataDir):
